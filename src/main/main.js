@@ -9,6 +9,7 @@ import {
 } from '../beat/beats.js';
 import { SCENES } from '../scenes/meta.js';
 import { renderPlaceholder } from '../scenes/placeholder.js';
+import { moduleFor } from '../scenes/index.js';
 import { renderIntro } from '../scenes/intro.js';
 import { renderOutro } from '../scenes/outro.js';
 import { drawCapsule } from '../rig/capsule.js';
@@ -71,18 +72,24 @@ function renderSceneSection(g, sec, t) {
   g.translate(SQ.x, 0);
   g.scale(UNIT, UNIT);          // 进入 1000×1000 单位空间
 
-  renderPlaceholder(g, meta, index, local);
+  const mod = moduleFor(index);
+  if (mod) mod.render(g, meta, local, index);
+  else renderPlaceholder(g, meta, index, local);
   drawRoadUnit(g, t);
 
-  // 时空舱：沿公路从左画框驶向右画框
+  // 时空舱：沿公路从左画框驶向右画框；版块可覆盖绘制（水墨/皮影/示教器等）
   const u = routeU(local);
   const x = u * 1000;
   const wave = local >= 2.0 && local < 4.0; // 第 2 小节高光：驾驶员挥手
-  drawCapsule(g, x, RIDE_Y, 1, {
-    t,
-    hoverLocal: local,
-    driverPose: { t, wave },
-  });
+  if (mod && mod.drawVehicle) {
+    mod.drawVehicle(g, { x, y: RIDE_Y, local, t, wave });
+  } else {
+    drawCapsule(g, x, RIDE_Y, 1, {
+      t,
+      hoverLocal: local,
+      driverPose: { t, wave },
+    });
+  }
 
   g.drawingContext.restore();
   g.pop();
