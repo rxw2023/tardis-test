@@ -103,6 +103,50 @@ export function titleCard(g, meta, cx, cy, alpha, zhFont, enFont) {
   g.pop();
 }
 
+// ============================================================
+// 几何工具（山水/白描等版块共用）
+// ============================================================
+
+// Catmull-Rom 平滑采样：手排几个转折点，得到顺滑的点列
+export function catmull(pts, perSeg = 12) {
+  const n = pts.length;
+  if (n < 2) return pts.slice();
+  const at = (i) => pts[Math.min(n - 1, Math.max(0, i))];
+  const out = [];
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    for (let j = 0; j < perSeg; j++) {
+      const t = j / perSeg, t2 = t * t, t3 = t2 * t;
+      out.push([
+        0.5 * (2 * p1[0] + (-p0[0] + p2[0]) * t
+          + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2
+          + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+        0.5 * (2 * p1[1] + (-p0[1] + p2[1]) * t
+          + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2
+          + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3),
+      ]);
+    }
+  }
+  out.push([pts[n - 1][0], pts[n - 1][1]]);
+  return out;
+}
+
+// 射线法：点是否在多边形内
+export function inPoly(x, y, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i][0], yi = poly[i][1];
+    const xj = poly[j][0], yj = poly[j][1];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+// 线性插值
+export function lerp(a, b, u) { return a + (b - a) * u; }
+
 // 线描风格的小胶囊（用于 Intro 素描插图）
 export function sketchCapsule(g, x, y, s) {
   g.push();

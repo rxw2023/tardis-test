@@ -73,6 +73,19 @@ function renderSceneSection(g, sec, t) {
   g.scale(UNIT, UNIT);          // 进入 1000×1000 单位空间
 
   const mod = moduleFor(index);
+
+  // 版块内相机：可选的 camera(local) → { z, fx, fy }
+  // 用于"镜头推近才找到那个小点"一类构图；舱体与公路共用同一变换，不会被落下
+  if (mod && mod.camera) {
+    const cam = mod.camera(local);
+    if (cam && cam.z && cam.z !== 1) {
+      const fx = cam.fx ?? 500, fy = cam.fy ?? 500;
+      g.translate(fx, fy);
+      g.scale(cam.z);
+      g.translate(-fx, -fy);
+    }
+  }
+
   if (mod) mod.render(g, meta, local, index);
   else renderPlaceholder(g, meta, index, local);
   drawRoadUnit(g, t);
