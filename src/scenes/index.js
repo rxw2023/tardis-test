@@ -9,10 +9,12 @@
 
 import * as sahara from './s01-sahara.js';
 import * as songshan from './s05-songshan.js';
+import * as vertical from './s19-vertical.js';
 
 const REGISTRY = {
   0: sahara,      // 01 撒哈拉岩画
   4: songshan,    // 05 宋代山水
+  18: vertical,   // 19 竖屏短视频
 };
 
 export function moduleFor(i) {
