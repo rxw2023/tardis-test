@@ -25,10 +25,13 @@ function parseArgs() {
     out: get('out', 'frames/run'),
     url: get('url', 'http://127.0.0.1:8846/index.html?still=1'),
     times: get('times', ''),   // 逗号分隔的时间点：--times 5.5,7.2,8.2
+    scene: get('scene', ''),   // 版块序号 1..20：把 --times 当成版块内局部时间 0..6
   };
 }
 
-const { from, to, fps, out, url, times } = parseArgs();
+const { from, to, fps, out, url, times, scene } = parseArgs();
+// --scene N（1..20）：把 --times 的局部时间换算成全局时间（版块 i 起点 = 5 + 6*i）
+const SCENE_BASE = scene === '' ? 0 : 5 + 6 * (parseInt(scene, 10) - 1);
 const outDir = resolve(out);
 await mkdir(outDir, { recursive: true });
 
@@ -48,10 +51,13 @@ const canvas = await page.$('#stage canvas');
 if (times) {
   const list = times.split(',').map((s) => parseFloat(s.trim())).filter((n) => !isNaN(n));
   let i = 0;
-  for (const t of list) {
-    await page.evaluate((tt) => window.__seek(tt), t);
+  for (const tt of list) {
+    const t = tt + SCENE_BASE;
+    await page.evaluate((x) => window.__seek(x), t);
     await page.waitForFunction('window.__FRAME_READY === true');
-    const name = `shot_${String(i).padStart(2, '0')}_t${t.toFixed(2)}.png`;
+    const name = SCENE_BASE
+      ? `shot_${String(i).padStart(2, '0')}_L${tt.toFixed(2)}.png`
+      : `shot_${String(i).padStart(2, '0')}_t${t.toFixed(2)}.png`;
     await canvas.screenshot({ path: `${outDir}/${name}` });
     console.log(`  ${name}`);
     i++;
