@@ -47,21 +47,22 @@ export function renderOutro(g, local) {
 
   g.pop();
 
-  // ---- 字幕 ----
+  // ---- 字幕（带半透明衬底，避免与推镜后的格子冲突）----
   g.textFont(ZH_SERIF);
   g.textAlign(g.CENTER, g.CENTER);
   g.textSize(44);
 
-  const a1 = smooth(0.6, 1.2, local) * (1 - smooth(7.6, 8.1, local));
-  if (a1 > 0.01) {
-    g.fill(232, 228, 220, 255 * a1);
-    g.text('截至目前，人类共提交了 20 份答卷。', W / 2, H - 110);
-  }
-  const a2 = smooth(8.2, 8.7, local);
-  if (a2 > 0.01) {
-    g.fill(232, 228, 220, 255 * a2);
-    g.text('时空驾驶员本人对此尚未发表评论。', W / 2, H - 110);
-  }
+  const drawCaption = (txt, a) => {
+    if (a <= 0.01) return;
+    g.noStroke();
+    g.fill(8, 8, 12, 150 * a);
+    g.rect(0, H - 165, W, 120);
+    g.fill(232, 228, 220, 255 * a);
+    g.text(txt, W / 2, H - 105);
+  };
+  drawCaption('截至目前，人类共提交了 20 份答卷。',
+    smooth(0.6, 1.2, local) * (1 - smooth(7.6, 8.1, local)));
+  drawCaption('时空驾驶员本人对此尚未发表评论。', smooth(8.2, 8.7, local));
 
   // ---- 最后一拍：时空舱从席位后方一闪而过 ----
   const flash = smooth(10.55, 10.62, local) * (1 - smooth(10.95, 11.05, local));
@@ -90,10 +91,15 @@ function drawCell(g, x, y, meta, i) {
   g.strokeWeight(2.5);
   drawCapsule(g, 0, 0, 1, { t: i * 0.7 });
   g.pop();
-  // 编号 + 名字
+  // 编号 + 名字（深底格子自动改用浅色文字）
+  const lum = cellLuma(meta.bg);
   g.noStroke();
-  const inkN = parseInt(meta.ink.slice(1), 16);
-  g.fill(inkN >> 16 & 255, inkN >> 8 & 255, inkN & 255, 160);
+  if (lum > 0.5) {
+    const inkN = parseInt(meta.ink.slice(1), 16);
+    g.fill(inkN >> 16 & 255, inkN >> 8 & 255, inkN & 255, 170);
+  } else {
+    g.fill(226, 222, 214, 200);
+  }
   g.textAlign(g.LEFT, g.TOP);
   g.textSize(22);
   g.text(String(i + 1).padStart(2, '0'), x + 10, y + 8);
@@ -153,4 +159,11 @@ function drawPressCell(g, x, y, local, push) {
 
   // 闪光灯位置占位（阶段 4 接音乐强拍咔嚓）
   g.pop();
+}
+
+// 背景色亮度（0..1），用于格子文字自动选深浅
+function cellLuma(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 }

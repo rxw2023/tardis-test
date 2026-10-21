@@ -57,6 +57,7 @@ export function renderFrame(g, t) {
 function renderSceneSection(g, sec, t) {
   const { index, local } = sec;
   const meta = SCENES[index];
+  const dist = nearestCrossingDist(t); // 距最近一次过框的秒数
 
   // 1) 边区（左右 420px 的深色幕布 + 公路延伸段）
   drawMargins(g, t);

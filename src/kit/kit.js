@@ -62,17 +62,20 @@ export function grain(g, x, y, w, h, seed = 7, strength = 18) {
   g.pop();
 }
 
-// 四边晕影
+// 四边晕影（径向渐变，柔和）
 export function vignette(g, x, y, w, h, strength = 90) {
-  g.push();
-  g.noFill();
-  for (let i = 0; i < 24; i++) {
-    g.stroke(10, 8, 6, strength / 24);
-    const k = i / 24;
-    g.strokeWeight(8 + k * 44);
-    g.rect(x + k * 26, y + k * 26, w - k * 52, h - k * 52);
-  }
-  g.pop();
+  const ctx = g.drawingContext;
+  const cx = x + w / 2, cy = y + h / 2;
+  const grad = ctx.createRadialGradient(
+    cx, cy, Math.min(w, h) * 0.36,
+    cx, cy, Math.max(w, h) * 0.74
+  );
+  grad.addColorStop(0, 'rgba(10,8,6,0)');
+  grad.addColorStop(1, `rgba(10,8,6,${(strength / 255).toFixed(3)})`);
+  ctx.save();
+  ctx.fillStyle = grad;
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
 }
 
 // 中英混排的标题卡（画在边区，屏幕坐标系）

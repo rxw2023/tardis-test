@@ -10,6 +10,6 @@
     "sheet": "node tools/contact-sheet.js"
   },
   "devDependencies": {
-    "puppeteer-core": "^24.0.0"
+    "puppeteer-core": "^24.43.1"
   }
 }
