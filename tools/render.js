@@ -24,10 +24,11 @@ function parseArgs() {
     fps: parseInt(get('fps', '30')),
     out: get('out', 'frames/run'),
     url: get('url', 'http://127.0.0.1:8846/index.html?still=1'),
+    times: get('times', ''),   // 逗号分隔的时间点：--times 5.5,7.2,8.2
   };
 }
 
-const { from, to, fps, out, url } = parseArgs();
+const { from, to, fps, out, url, times } = parseArgs();
 const outDir = resolve(out);
 await mkdir(outDir, { recursive: true });
 
@@ -42,12 +43,29 @@ await page.goto(url, { waitUntil: 'networkidle0' });
 await page.waitForFunction('typeof window.__seek === "function"');
 
 const canvas = await page.$('#stage canvas');
+
+// 模式 A：指定时间点
+if (times) {
+  const list = times.split(',').map((s) => parseFloat(s.trim())).filter((n) => !isNaN(n));
+  let i = 0;
+  for (const t of list) {
+    await page.evaluate((tt) => window.__seek(tt), t);
+    await page.waitForFunction('window.__FRAME_READY === true');
+    const name = `shot_${String(i).padStart(2, '0')}_t${t.toFixed(2)}.png`;
+    await canvas.screenshot({ path: `${outDir}/${name}` });
+    console.log(`  ${name}`);
+    i++;
+  }
+  await browser.close();
+  console.log(`done: ${i} stills -> ${outDir}`);
+  process.exit(0);
+}
+
+// 模式 B：逐帧区间
 const n0 = Math.round(from * fps);
 const n1 = Math.round(to * fps);
 const digits = String(n1).length;
-let count = 0;
-
-for (let n = n0; n < n1; n++) {
+let count = 0;for (let n = n0; n < n1; n++) {
   const t = n / fps;
   await page.evaluate((tt) => window.__seek(tt), t);
   await page.waitForFunction('window.__FRAME_READY === true');

@@ -29,13 +29,15 @@ export function renderOutro(g, local) {
   g.fill(16, 14, 18);
   g.rect(0, 0, W, H);
 
-  // 镜头推近：local 3.5 → 7.5，从 1.0 推到 2.6，聚焦第 21 格
+  // 镜头推近：local 3.5 → 7.5，从 1.0 推到 2.6；镜头中心同步从画面中心移到第 21 格
   const push = smooth(3.5, 7.5, local);
   const z = 1 + push * 1.6;
+  const camX = W / 2 + (FOCUS.x - W / 2) * push;
+  const camY = H / 2 + (FOCUS.y - H / 2) * push;
   g.push();
-  g.translate(FOCUS.x, FOCUS.y);
+  g.translate(W / 2, H / 2);
   g.scale(z);
-  g.translate(-FOCUS.x, -FOCUS.y);
+  g.translate(-camX, -camY);
 
   // 20 份答卷
   for (let i = 0; i < 20; i++) {
@@ -145,10 +147,10 @@ function drawPressCell(g, x, y, local, push) {
   // 席卡
   g.noStroke();
   g.fill(226, 220, 208);
-  g.rect(x + CELL / 2 - 44, y + CELL * 0.44, 88, 26, 4);
+  g.rect(x + CELL / 2 - 60, y + CELL * 0.44, 120, 26, 4);
   g.fill(40, 36, 34);
   g.textAlign(g.CENTER, g.CENTER);
-  g.textSize(13);
+  g.textSize(12);
   g.textFont(ZH_SERIF);
   g.text('时空驾驶员（本人）', x + CELL / 2, y + CELL * 0.44 + 13);
   // 空椅子
