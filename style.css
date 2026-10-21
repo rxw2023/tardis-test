@@ -1,0 +1,42 @@
+:root { color-scheme: dark; }
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: #0b0b0e;
+  color: #d8d5cf;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+header { padding: 14px 0 6px; }
+h1 { font-size: 17px; font-weight: 600; letter-spacing: 1px; }
+.tag { font-size: 12px; color: #8a867e; font-weight: 400; margin-left: 8px; }
+
+#stage {
+  width: min(96vw, 172vh);   /* 保持 16:9 */
+  aspect-ratio: 16 / 9;
+  position: relative;
+}
+#stage canvas { width: 100% !important; height: 100% !important; display: block; }
+
+/* 逐帧导出模式：画布 1:1 原始尺寸，供 Puppeteer 截图 */
+html.still body { display: block; overflow: hidden; }
+html.still header, html.still #controls { display: none; }
+html.still #stage { width: 1920px; height: 1080px; aspect-ratio: auto; }
+
+#controls {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 18px; width: min(96vw, 172vh);
+}
+#btn-play {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid #3a3a40; background: #1a1a1f; color: #e8e5de;
+  font-size: 15px; cursor: pointer;
+}
+#btn-play:hover { background: #26262c; }
+#seek { flex: 1; accent-color: #1f8a94; }
+#time { font-variant-numeric: tabular-nums; font-size: 13px; color: #9a968e; }
+#section { font-size: 13px; color: #cfc9bd; min-width: 260px; text-align: right; }
+.loop { font-size: 12px; color: #9a968e; display: flex; align-items: center; gap: 4px; }
+.hint { font-size: 11px; color: #6a665e; }

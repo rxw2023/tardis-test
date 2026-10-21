@@ -1,0 +1,15 @@
+{
+  "name": "tardis-test",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "《塔迪斯测试》——一部关于时空舱穿越艺术史的代码动画短片（原创设计）",
+  "scripts": {
+    "serve": "node tools/serve.js 8846",
+    "render": "node tools/render.js",
+    "sheet": "node tools/contact-sheet.js"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}

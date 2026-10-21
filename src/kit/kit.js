@@ -1,0 +1,120 @@
+// ============================================================
+// kit.js — 共用绘图工具包：颗粒纹理、圆角矩形、文字卡、晕影
+// 所有函数只往传入的 g（p5 实例）上画，不持有全局状态
+// ============================================================
+
+const grainCache = new Map();
+
+// 可复现伪随机
+export function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// 圆角矩形（走原生 2D 上下文，避免 p5 版本差异）
+export function rr(g, x, y, w, h, r) {
+  g.drawingContext.beginPath();
+  g.drawingContext.roundRect(x, y, w, h, r);
+}
+
+export function rrFill(g, x, y, w, h, r) {
+  rr(g, x, y, w, h, r);
+  g.drawingContext.fill();
+}
+
+export function rrStroke(g, x, y, w, h, r) {
+  rr(g, x, y, w, h, r);
+  g.drawingContext.stroke();
+}
+
+// 纸张/画布颗粒：按 (w,h,seed) 缓存一张小噪声图，drawImage 平铺
+export function grain(g, x, y, w, h, seed = 7, strength = 18) {
+  const key = `${seed}`;
+  let img = grainCache.get(key);
+  if (!img) {
+    const rnd = mulberry32(seed * 1013 + 77);
+    const S = 256;
+    img = g.createImage(S, S);
+    img.loadPixels();
+    for (let i = 0; i < S * S; i++) {
+      const v = 128 + (rnd() - 0.5) * 255;
+      img.pixels[i * 4 + 0] = v;
+      img.pixels[i * 4 + 1] = v;
+      img.pixels[i * 4 + 2] = v;
+      img.pixels[i * 4 + 3] = 255;
+    }
+    img.updatePixels();
+    grainCache.set(key, img);
+  }
+  g.push();
+  g.blendMode(g.OVERLAY);
+  g.tint(255, strength);
+  for (let yy = y; yy < y + h; yy += 256) {
+    for (let xx = x; xx < x + w; xx += 256) {
+      g.image(img, xx, yy);
+    }
+  }
+  g.pop();
+}
+
+// 四边晕影
+export function vignette(g, x, y, w, h, strength = 90) {
+  g.push();
+  g.noFill();
+  for (let i = 0; i < 24; i++) {
+    g.stroke(10, 8, 6, strength / 24);
+    const k = i / 24;
+    g.strokeWeight(8 + k * 44);
+    g.rect(x + k * 26, y + k * 26, w - k * 52, h - k * 52);
+  }
+  g.pop();
+}
+
+// 中英混排的标题卡（画在边区，屏幕坐标系）
+// meta: { zh, en, era, accent, ink }
+export function titleCard(g, meta, cx, cy, alpha, zhFont, enFont) {
+  if (alpha <= 0.003) return;
+  g.push();
+  g.noStroke();
+  g.fill(255, 255, 255, 255 * alpha);
+  g.textFont(zhFont);
+  g.textSize(46);
+  g.textAlign(g.CENTER, g.BASELINE);
+  g.text(meta.zh, cx, cy);
+  g.textSize(20);
+  g.textFont(enFont);
+  g.text(meta.en.toUpperCase(), cx, cy + 34);
+  g.textSize(18);
+  g.textFont(zhFont);
+  g.fill(255, 255, 255, 190 * alpha);
+  g.text(meta.era, cx, cy + 62);
+  // 上方一道小饰线
+  g.stroke(255, 255, 255, 160 * alpha);
+  g.strokeWeight(2);
+  g.line(cx - 40, cy - 58, cx + 40, cy - 58);
+  g.pop();
+}
+
+// 线描风格的小胶囊（用于 Intro 素描插图）
+export function sketchCapsule(g, x, y, s) {
+  g.push();
+  g.noFill();
+  g.strokeWeight(2.4 * s);
+  // 机身
+  g.rect(x - 34 * s, y - 96 * s, 68 * s, 96 * s);
+  // 顶灯
+  g.line(x, y - 96 * s, x, y - 112 * s);
+  g.circle(x, y - 122 * s, 16 * s);
+  // 窗（2×2）
+  for (let r = 0; r < 2; r++)
+    for (let c = 0; c < 2; c++)
+      g.rect(x - 26 * s + c * 32 * s, y - 88 * s + r * 26 * s, 24 * s, 18 * s);
+  // 门缝
+  g.line(x, y - 30 * s, x, y);
+  g.pop();
+}
