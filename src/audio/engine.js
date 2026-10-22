@@ -45,10 +45,10 @@ function buildBuses(ctx) {
 
   // 空间总线（数量固定，避免 20 个卷积器）
   const verbs = {
-    hall:  S.reverb(ctx, master, { seconds: 2.6, decay: 2.4, wet: 0.9 }),
-    room:  S.reverb(ctx, master, { seconds: 0.9, decay: 3.2, wet: 0.8 }),
-    plate: S.reverb(ctx, master, { seconds: 1.9, decay: 1.6, wet: 0.75 }),
-    cave:  S.reverb(ctx, master, { seconds: 3.8, decay: 2.0, wet: 0.85 }),
+    hall:  S.reverb(ctx, master, { seconds: 2.2, decay: 2.4, wet: 0.9 }),
+    room:  S.reverb(ctx, master, { seconds: 0.8, decay: 3.2, wet: 0.8 }),
+    plate: S.reverb(ctx, master, { seconds: 1.6, decay: 1.6, wet: 0.75 }),
+    cave:  S.reverb(ctx, master, { seconds: 3.0, decay: 2.0, wet: 0.85 }),
   };
   const delay = S.delayFx(ctx, master, { time: 0.375, feedback: 0.32, mix: 0.5, bright: 3000 });
 

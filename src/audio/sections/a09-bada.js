@@ -41,7 +41,7 @@ export default {
     S.pluck(ctx, io.out, t, {
       freq,
       dur: Math.max(0.20, dur * 1.15),
-      gain: 0.46 * vel,
+      gain: 0.54 * vel,
       partials: 5,
       bright: 2.2,
       damp: 0.85,
@@ -51,7 +51,10 @@ export default {
   },
 
   // 低音：只在 bar0 / bar2 的小节头给一次极低的散音；bar1 完全不响
-  bass(ctx, io, t, freq, dur, vel, bar) {
+  // （引擎不传 bar 给 bass，用 io 上每版块独立的计数器推出来）
+  bass(ctx, io, t, freq, dur, vel) {
+    const bar = io._bassBar || 0;
+    io._bassBar = bar + 1;
     if (bar === 1) return;
     S.pluck(ctx, io.out, t, {
       freq,
@@ -88,6 +91,7 @@ export default {
 
   // 纸面空白噪声（贯穿全版块）+ 一次远处的孤鸟
   flavor(ctx, io, t0) {
+    io._bassBar = 0;
     blankAir(ctx, io.out, t0, 7.0, 0.022);
 
     // 孤鸟：一声短下滑，落在 bar1 的留白里

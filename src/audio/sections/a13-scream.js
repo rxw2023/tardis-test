@@ -44,7 +44,7 @@ function scream(ctx, dest, t, o) {
 }
 
 export default {
-  gain: 0.96,
+  gain: 1.06,
   legato: 0.94,
   bassLen: 0.88,
   chordOct: -1,

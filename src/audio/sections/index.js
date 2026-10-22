@@ -24,10 +24,18 @@ import m05 from './a05-songshan.js';
 import m06 from './a06-qingming.js';
 import m07 from './a07-maya.js';
 import m08 from './a08-mughal.js';
+import m09 from './a09-bada.js';
+import m10 from './a10-wayang.js';
 import m11 from './a11-ukiyoe.js';
+import m12 from './a12-starrynight.js';
 import m13 from './a13-scream.js';
+import m14 from './a14-nosferatu.js';
+import m15 from './a15-oscilloscope.js';
+import m16 from './a16-8bit.js';
+import m17 from './a17-chatwindow.js';
 import m18 from './a18-vaporwave.js';
 import m19 from './a19-vertical.js';
+import m20 from './a20-codeaesthetic.js';
 // ---AUTO-IMPORTS-END---
 
 // 各版块的音阶 / 八度 / 空间预设（未实现乐器的版块也先按这个走）
@@ -64,10 +72,18 @@ SLOTS[4] = m05;
 SLOTS[5] = m06;
 SLOTS[6] = m07;
 SLOTS[7] = m08;
+SLOTS[8] = m09;
+SLOTS[9] = m10;
 SLOTS[10] = m11;
+SLOTS[11] = m12;
 SLOTS[12] = m13;
+SLOTS[13] = m14;
+SLOTS[14] = m15;
+SLOTS[15] = m16;
+SLOTS[16] = m17;
 SLOTS[17] = m18;
 SLOTS[18] = m19;
+SLOTS[19] = m20;
 // ---AUTO-SLOTS-END---
 
 export function audioModuleFor(i) {

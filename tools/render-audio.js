@@ -56,6 +56,8 @@ if (!server) throw new Error('no free port');
 const browser = await puppeteer.launch({
   executablePath: CHROME,
   headless: true,
+  // 整片 137s 的 OfflineAudioContext 渲染要 3 分钟以上，默认 180s 协议超时会直接崩
+  protocolTimeout: 900000,
   args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'],
 });
 try {

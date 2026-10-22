@@ -34,19 +34,24 @@ function grace(ctx, dest, t, freq, mainGain, dir, seed) {
 }
 
 export default {
-  gain: 0.98,
+  gain: 1.06,
   legato: 0.92,     // 略短，给装饰音留出空间
   bassLen: 1.0,
   chordLen: 0.98,
 
   // 主音：西塔琴。长音（>=0.7s）前置一串装饰音——这一格的招牌
   lead(ctx, io, t, freq, dur, vel, bar, semis) {
-    const g = 0.38 * vel;
-    const ring = dur * 1.55;                     // 共鸣弦拖尾
+    const g = 0.65 * vel;
+    const ring = Math.max(1.10, Math.min(dur * 2.0, 2.6));   // 共鸣弦拖尾（西塔琴余韵很长）
     sitar(ctx, io.out, t, freq, ring, g);
+    // 共鸣弦（taraf）的持续层：让音高在长音里一直站得住
+    S.tone(ctx, io.out, t, {
+      freq, dur: dur * 1.15, type: 'sine', gain: 0.17 * vel,
+      a: 0.012, d: 0.22, s: 0.62, r: 0.25,
+    });
     // 共鸣弦的第二层轻微失谐，制造细密画式的“描边”
     S.tone(ctx, io.out, t, {
-      freq: freq * 2.002, dur: ring * 0.55, type: 'sine', gain: 0.05 * vel,
+      freq: freq * 2.002, dur: ring * 0.55, type: 'sine', gain: 0.035 * vel,
       a: 0.02, d: 0.18, s: 0.30, r: 0.22,
     });
 
@@ -61,15 +66,15 @@ export default {
   bass(ctx, io, t, freq, dur, vel) {
     const d = dur * 0.99;
     S.tone(ctx, io.out, t, {
-      freq, dur: d, type: 'sawtooth', gain: 0.10 * vel,
+      freq, dur: d, type: 'sawtooth', gain: 0.032 * vel,
       a: 0.06, d: 0.20, s: 0.82, r: 0.26,
       filter: { type: 'lowpass', freq: 500, q: 0.8 },
       vib: { rate: 0.7, depth: 1.6 },
     });
-    S.sub(ctx, io.out, t, { freq, dur: d, gain: 0.12 * vel, wave: 'sine', bright: 420, a: 0.05, s: 0.9, r: 0.24 });
+    S.sub(ctx, io.out, t, { freq, dur: d, gain: 0.034 * vel, wave: 'sine', bright: 420, a: 0.05, s: 0.9, r: 0.24 });
     // 五度（坦普拉的持续音之一）
     S.tone(ctx, io.out, t + 0.04, {
-      freq: freq * 1.5, dur: d * 0.96, type: 'triangle', gain: 0.035 * vel,
+      freq: freq * 1.5, dur: d * 0.96, type: 'triangle', gain: 0.022 * vel,
       a: 0.09, d: 0.22, s: 0.78, r: 0.26,
       filter: { type: 'lowpass', freq: 620, q: 0.7 },
     });
@@ -139,7 +144,7 @@ export default {
     f.frequency.linearRampToValueAtTime(1400, t0 + 6);
     const g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.025, t0 + 1.4);
+    g.gain.exponentialRampToValueAtTime(0.038, t0 + 1.4);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + 6);
     src.connect(f).connect(g).connect(io.out);
     src.start(t0); src.stop(t0 + 6.05);
