@@ -1,3 +1,5 @@
 frames/
 node_modules/
 .DS_Store
+audio/*.wav
+out/

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>塔迪斯测试 · 音频</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { padding: 16px 20px; }
+  #bar { width: 100%; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #log { font: 12px/1.6 ui-monospace, Consolas, monospace; color: #8a8a96; margin-top: 8px; white-space: pre-wrap; }
+  select, button { background: #1b1b21; color: #d8d8e0; border: 1px solid #33333d; padding: 4px 10px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>《塔迪斯测试》音频 <span class="tag">Web Audio 程序合成 · 137s</span></h1>
+
+<div class="row">
+  <button id="btn-render">渲染整片</button>
+  <button id="btn-play">▶</button>
+  <label>单版块
+    <select id="scene">
+      <option value="">— 整片 —</option>
+    </select>
+  </label>
+  <button id="btn-scene">渲染该版块</button>
+  <input id="bar" type="range" min="0" max="137" step="0.02" value="0">
+  <span id="time">0:00 / 2:17</span>
+  <span id="now">—</span>
+</div>
+<div id="log">准备就绪。</div>
+
+<script type="module">
+import { renderFilmAudio, renderSceneAudio } from './src/audio/engine.js';
+import { sectionOf } from './src/beat/beats.js';
+import { SCENES } from './src/scenes/meta.js';
+import { fmt } from './src/beat/beats.js';
+
+const log = (s) => { document.getElementById('log').textContent = s; };
+const q = new URLSearchParams(location.search);
+
+const sel = document.getElementById('scene');
+SCENES.forEach((m, i) => {
+  const o = document.createElement('option');
+  o.value = String(i + 1);
+  o.textContent = `${String(i + 1).padStart(2, '0')} ${m.zh}`;
+  sel.appendChild(o);
+});
+
+let buf = null;              // 当前 AudioBuffer
+let actx = null;             // 播放用的实时上下文
+let srcNode = null;
+let startedAt = 0;           // actx.currentTime 基准
+let startOffset = 0;
+let playing = false;
+let raf = 0;
+
+function ensureCtx() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: buf ? buf.sampleRate : 48000 });
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+function play(offset = 0) {
+  if (!buf) return;
+  const c = ensureCtx();
+  stop();
+  srcNode = c.createBufferSource();
+  srcNode.buffer = buf;
+  srcNode.connect(c.destination);
+  srcNode.start(0, Math.max(0, offset));
+  startedAt = c.currentTime;
+  startOffset = offset;
+  playing = true;
+  document.getElementById('btn-play').textContent = '⏸';
+  tick();
+}
+function stop() {
+  if (srcNode) { try { srcNode.stop(); } catch {} srcNode.disconnect(); srcNode = null; }
+  playing = false;
+  cancelAnimationFrame(raf);
+  document.getElementById('btn-play').textContent = '▶';
+}
+function pos() {
+  if (!playing) return startOffset;
+  return Math.min(buf.duration, startOffset + (actx.currentTime - startedAt));
+}
+function tick() {
+  const t = pos();
+  document.getElementById('bar').value = t;
+  document.getElementById('time').textContent = `${fmt(t)} / ${fmt(buf ? buf.duration : 137)}`;
+  const s = sectionOf(t);
+  document.getElementById('now').textContent =
+    s.id === 'intro' ? '片头' : s.id === 'outro' ? '片尾'
+      : `第 ${s.index + 1} 格 · ${SCENES[s.index].zh}`;
+  if (playing) raf = requestAnimationFrame(tick);
+}
+
+document.getElementById('btn-render').onclick = async () => {
+  log('渲染中（整片 137s）…');
+  const t0 = performance.now();
+  buf = await renderFilmAudio({ sampleRate: 48000 });
+  log(`完成：${buf.duration.toFixed(2)}s / ${buf.sampleRate}Hz / ${buf.numberOfChannels}ch，耗时 ${((performance.now() - t0) / 1000).toFixed(1)}s`);
+  window.__buf = buf;
+  play(0);
+};
+document.getElementById('btn-play').onclick = () => { playing ? (startOffset = pos(), stop()) : play(startOffset); };
+document.getElementById('bar').oninput = (e) => {
+  startOffset = parseFloat(e.target.value);
+  if (playing) play(startOffset); else tick();
+};
+document.getElementById('btn-scene').onclick = async () => {
+  const v = sel.value;
+  if (!v) return;
+  const i = parseInt(v, 10) - 1;
+  log(`渲染第 ${i + 1} 格…`);
+  buf = await renderSceneAudio(i, { sampleRate: 48000 });
+  window.__buf = buf;
+  log(`完成：${buf.duration.toFixed(2)}s`);
+  play(0);
+};
+
+// ---------------- 导出（供 puppeteer 取 WAV） ----------------
+window.__prepareWav = () => {
+  const b = window.__buf || buf;
+  if (!b) return null;
+  const n = b.length, ch = b.numberOfChannels;
+  const i16 = new Int16Array(n * ch);
+  const data = [];
+  for (let c = 0; c < ch; c++) data.push(b.getChannelData(c));
+  for (let i = 0; i < n; i++) {
+    for (let c = 0; c < ch; c++) {
+      let v = data[c][i];
+      v = v < -1 ? -1 : v > 1 ? 1 : v;
+      i16[i * ch + c] = v < 0 ? v * 0x8000 : v * 0x7fff;
+    }
+  }
+  window.__i16 = i16;
+  return { n, ch, sampleRate: b.sampleRate, bytes: i16.byteLength };
+};
+window.__chunkB64 = (startBytes, lenBytes) => {
+  const u8 = new Uint8Array(window.__i16.buffer, startBytes, lenBytes);
+  let s = '';
+  const CH = 0x8000;
+  for (let i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
+  return btoa(s);
+};
+
+window.__render = {
+  film: async (sr) => { buf = await renderFilmAudio({ sampleRate: sr || 48000 }); window.__buf = buf; return buf.duration; },
+  scene: async (i, sr) => { buf = await renderSceneAudio(i, { sampleRate: sr || 48000 }); window.__buf = buf; return buf.duration; },
+};
+
+if (q.get('auto') === '1') document.getElementById('btn-render').click();
+if (q.get('scene')) {
+  sel.value = q.get('scene');
+  document.getElementById('btn-scene').click();
+}
+</script>
+</body>
+</html>

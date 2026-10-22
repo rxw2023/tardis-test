@@ -7,6 +7,10 @@
   "scripts": {
     "serve": "node tools/serve.js 8846",
     "render": "node tools/render.js",
+    "audio": "node tools/render-audio.js",
+    "stats": "node tools/audio-stats.js",
+    "spec": "node tools/audio-spec.js",
+    "mux": "node tools/mux.js",
     "sheet": "node tools/contact-sheet.js"
   },
   "devDependencies": {

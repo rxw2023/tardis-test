@@ -15,6 +15,7 @@ import { renderOutro } from '../scenes/outro.js';
 import { drawCapsule } from '../rig/capsule.js';
 import { drawRoadUnit, drawRoadPixel } from '../kit/road.js';
 import { grain, titleCard } from '../kit/kit.js';
+import { player } from '../audio/player.js';
 
 // 画面几何：1920×1080，中央 1080×1080 为场景正方形，两侧各 420px 边区
 const SQ = { x: 420, s: 1080 };           // 单位空间 0..1000 → 像素 [420,1500]
@@ -167,6 +168,7 @@ const sketch = (p) => {
     p.pixelDensity(1);
     p.noLoop();
     bindUI(p);
+    initAudio();
     // 逐帧导出模式：?still=1
     const q = new URLSearchParams(location.search);
     if (q.get('still') === '1') {
@@ -185,16 +187,31 @@ const sketch = (p) => {
 
   p.draw = () => {
     if (state.playing) {
-      state.t += p.deltaTime / 1000;
-      if (state.t >= TOTAL) {
-        if (state.loop) { state.t = 0; }
-        else { state.t = TOTAL; setPlaying(false); }
+      // 音频就绪时以音频时钟为准，保证音画不漂
+      if (player.playing) state.t = player.time();
+      else state.t += p.deltaTime / 1000;
+      if (state.t >= TOTAL - 0.02) {
+        if (state.loop) { state.t = 0; player.seek(0); }
+        else { state.t = TOTAL; player.seek(TOTAL); setPlaying(false, p); }
       }
     }
     renderFrame(p, state.t);
     updateUI();
   };
 };
+
+// 异步加载成片音轨；失败则静音播放
+async function initAudio() {
+  const el = document.getElementById('audio-status');
+  if (!el) return;
+  el.textContent = '音频加载中…';
+  try {
+    const d = await player.load();
+    el.textContent = `音轨就绪 ${d.toFixed(1)}s`;
+  } catch {
+    el.textContent = '无音轨（静音播放）';
+  }
+}
 
 function bindUI(p) {
   ui = {
@@ -203,17 +220,24 @@ function bindUI(p) {
     time: document.getElementById('time'),
     section: document.getElementById('section'),
     loop: document.getElementById('loop'),
+    audio: document.getElementById('audio-status'),
   };
   ui.btn.addEventListener('click', () => setPlaying(!state.playing, p));
   ui.slider.addEventListener('input', () => {
     state.t = parseFloat(ui.slider.value);
+    player.seek(state.t);
     if (!state.playing) { renderFrame(p, state.t); updateUI(); }
   });
   ui.loop.addEventListener('change', () => { state.loop = ui.loop.checked; });
   window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') { e.preventDefault(); setPlaying(!state.playing, p); }
-    if (e.code === 'ArrowRight') { state.t = Math.min(TOTAL, state.t + 5); if (!state.playing) { renderFrame(p, state.t); updateUI(); } }
-    if (e.code === 'ArrowLeft') { state.t = Math.max(0, state.t - 5); if (!state.playing) { renderFrame(p, state.t); updateUI(); } }
+    const jump = (dt) => {
+      state.t = Math.min(TOTAL, Math.max(0, state.t + dt));
+      player.seek(state.t);
+      if (!state.playing) { renderFrame(p, state.t); updateUI(); }
+    };
+    if (e.code === 'ArrowRight') jump(5);
+    if (e.code === 'ArrowLeft') jump(-5);
   });
   updateUI();
 }
@@ -221,6 +245,8 @@ function bindUI(p) {
 function setPlaying(v, p) {
   state.playing = v;
   if (p) v ? p.loop() : p.noLoop();
+  if (v) player.play(state.t);
+  else player.pause();
   updateUI();
 }
 
