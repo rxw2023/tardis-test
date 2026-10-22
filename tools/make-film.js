@@ -27,6 +27,7 @@ const sr = parseInt(get('sr', '48000'), 10);
 const from = parseFloat(get('from', '0'));
 const to = parseFloat(get('to', '137'));
 const frameDir = get('frames', `frames/film${fps}`);
+const parts = parseInt(get('parts', '10'), 10);
 const audioFile = get('audio', 'audio/film.wav');
 const out = resolve(get('out', `out/film-${fps}fps.mp4`));
 
@@ -53,8 +54,9 @@ console.log('\n[2/3] 帧序列');
 if (has('--skip-frames')) {
   console.log(`  跳过，复用 ${frameDir}`);
 } else {
-  await run('render.js',
-    ['--from', String(from), '--to', String(to), '--fps', String(fps), '--out', frameDir]);
+  await run('render-parallel.js',
+    ['--from', String(from), '--to', String(to), '--fps', String(fps),
+     '--out', frameDir, '--parts', String(parts)]);
 }
 
 console.log('\n[3/3] 合成');

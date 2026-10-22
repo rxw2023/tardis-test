@@ -204,6 +204,12 @@ const sketch = (p) => {
 async function initAudio() {
   const el = document.getElementById('audio-status');
   if (!el) return;
+  // 逐帧导出模式（?still=1）不需要音轨：并行渲染时每个 Chrome 都下载一遍
+  // 26MB 的 WAV 纯属浪费内存和启动时间。
+  if (document.documentElement.classList.contains('still')) {
+    el.textContent = '逐帧模式（不加载音轨）';
+    return;
+  }
   el.textContent = '音频加载中…';
   try {
     const d = await player.load();
