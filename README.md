@@ -51,6 +51,10 @@
     npm run spec -- audio/scene18.wav --at 2.7,2.95
     npm run mux -- --frames frames/run --fps 60 --audio audio/film.wav --out out/film.mp4
 
+    npm run film                    # 一键：音轨 + 帧序列 + MP4（60fps，约 1 小时）
+    npm run film -- --fps 30 --from 5 --to 17 --out out/clip.mp4
+    npm run film -- --skip-audio    # 复用已有音轨
+
 音频也支持在浏览器里试听：开 serve 后打开 /audio.html（可整片渲染，也可下拉选单版块）。
 
 ## 时间轴

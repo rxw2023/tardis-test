@@ -11,6 +11,8 @@
     "stats": "node tools/audio-stats.js",
     "spec": "node tools/audio-spec.js",
     "mux": "node tools/mux.js",
+    "film": "node tools/make-film.js",
+    "check": "node tools/audio-check.js",
     "sheet": "node tools/contact-sheet.js"
   },
   "devDependencies": {
