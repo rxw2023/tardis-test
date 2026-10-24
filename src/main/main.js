@@ -213,7 +213,12 @@ async function initAudio() {
   el.textContent = '音频加载中…';
   try {
     const d = await player.load();
-    el.textContent = `音轨就绪 ${d.toFixed(1)}s`;
+    // 浏览器不允许自动播放：首次手势之前 AudioContext 是 suspended。
+    // 这里必须如实提示，否则「打开了没声音」会被误判成坏了。
+    const running = player.ctx && player.ctx.state === 'running';
+    el.textContent = running
+      ? `音轨就绪 ${d.toFixed(1)}s`
+      : `音轨就绪 ${d.toFixed(1)}s · 点 ▶ 或按空格开始`;
   } catch {
     el.textContent = '无音轨（静音播放）';
   }
@@ -248,11 +253,15 @@ function bindUI(p) {
   updateUI();
 }
 
-function setPlaying(v, p) {
+async function setPlaying(v, p) {
   state.playing = v;
   if (p) v ? p.loop() : p.noLoop();
-  if (v) player.play(state.t);
-  else player.pause();
+  if (v) {
+    const ok = await player.play(state.t);
+    if (!ok && ui.audio) ui.audio.textContent = '浏览器拦下了播放 · 再点一次 ▶';
+  } else {
+    player.pause();
+  }
   updateUI();
 }
 

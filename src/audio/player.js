@@ -20,7 +20,8 @@ export const player = {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const arr = await res.arrayBuffer();
       if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
-      if (this.ctx.state === 'suspended') await this.ctx.resume();
+      // 这里不 resume：suspended 状态下 decodeAudioData 照样能用，
+      // 而真正的 resume 必须发生在用户手势里（见 play）。
       this.buf = await this.ctx.decodeAudioData(arr);
       this.ready = true;
       return this.buf.duration;
@@ -30,11 +31,17 @@ export const player = {
     }
   },
 
-  play(offset = 0) {
+  // 返回 true 表示声音真的排上了。浏览器自动播放策略下，
+  // AudioContext 在首次手势前是 suspended，此时 start() 会排在一个被冻结的时钟上，
+  // 表现就是「画面在走、一声不响」，所以必须等 resume() 兑现成 running 再 start()。
+  async play(offset = 0) {
     if (!this.ready) return false;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
     this.stop();
     const c = this.ctx;
+    if (c.state !== 'running') {
+      try { await c.resume(); } catch { /* 用户还没给手势 */ }
+    }
+    if (c.state !== 'running') return false;
     const n = c.createBufferSource();
     n.buffer = this.buf;
     n.connect(c.destination);
@@ -75,3 +82,6 @@ export const player = {
 
   duration() { return this.ready ? this.buf.duration : 0; },
 };
+
+// 排障用：控制台可直接查 __player.ctx.state / __player.ready
+if (typeof window !== 'undefined') window.__player = player;
