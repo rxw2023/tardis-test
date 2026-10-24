@@ -18,6 +18,8 @@
 | 工具脚本 | 14 files / 964 行 |
 | 运行时依赖 | `puppeteer-core`（唯一） |
 
+成片：[`out/film-60fps.mp4`](out/film-60fps.mp4)（60 MB · 1920×1080 · 60fps · 含完整音轨）
+
 ## 技术栈
 
 | 层 | 实际用的东西 | 是否 npm 包 |

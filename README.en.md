@@ -18,6 +18,8 @@ All 8,220 frames and the entire score are computed by code, then muxed with ffmp
 | Tooling | 14 files / 964 lines |
 | Runtime deps | `puppeteer-core` (the only one) |
 
+Watch: [`out/film-60fps.mp4`](out/film-60fps.mp4) (60 MB · 1920×1080 · 60fps · with full audio)
+
 ## Stack
 
 | Layer | What is actually used | npm package? |
