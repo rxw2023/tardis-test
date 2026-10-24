@@ -1,6 +1,6 @@
 # 版块技术契约（每个子代理开工前必读）
 
-项目根目录：`C:/Users/Rao/Desktop/学习/前端设计/tardis-test`
+项目根目录：仓库根目录（下文命令都从这里执行）
 预览服务器已在 `http://127.0.0.1:8846/` 运行（**不要重启它**）。
 
 ## 你只许改一个文件
@@ -99,13 +99,13 @@ DEFAULT_CAPSULE = { w:178, h:196, body:'#1f8a94', bodyDark:'#14606a',
 
 ## 自查与交付流程
 
-Node 用这个绝对路径：`C:/Users/Rao/.workbuddy/binaries/node/versions/22.22.2-6/node.exe`（下文记为 `$N`）。
+Node 要求 18 或以上，命令里直接用 `node`。
 
 ```bash
-cd C:/Users/Rao/Desktop/学习/前端设计/tardis-test
-$N --check src/scenes/sNN-slug.js                        # 1 语法
-$N tools/probe.js <全局时间点>                            # 2 抓页面报错 + 单帧耗时
-$N tools/render.js --scene NN --times 0.5,2.2,3.2,4.2,5.2,5.9 --out frames/<slug>   # 3 出 6 帧
+cd <repo>                                                # 仓库根目录
+node --check src/scenes/sNN-slug.js                      # 1 语法
+node tools/probe.js <全局时间点>                          # 2 抓页面报错 + 单帧耗时
+node tools/render.js --scene NN --times 0.5,2.2,3.2,4.2,5.2,5.9 --out frames/<slug>   # 3 出 6 帧
 ```
 `--scene NN` 里的 NN 是**版块序号 1..20**（不是 index），`--times` 后面跟的是**版块内局部时间 0..6**，脚本会自动加 `5 + 6*(NN-1)` 换算成全局时间。
 你的场景已经在 `src/scenes/index.js` 里注册好了（占位版本），直接渲染就能看到你的实现，**不需要也不许改 index.js**。
