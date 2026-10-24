@@ -1,0 +1,42 @@
+MIT License
+
+Copyright (c) 2026 Rao
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+适用范围说明 / Scope
+
+本授权覆盖本仓库中的全部原创内容，包括源代码（src/、tools/）、
+美术与音频简报（briefs/）、文档，以及由这些代码渲染出的成片、封面与静帧。
+
+第三方组件不在此授权范围内，各自遵循原有许可：
+p5.js（LGPL-2.1）、p5.brush（MIT）、puppeteer-core（Apache-2.0）、
+ffmpeg（LGPL/GPL，仅外部调用、不随仓库分发）。详见 NOTICE.md 与
+THIRD_PARTY_NOTICES.md。
+
+This license covers all original content in this repository: the source code
+(src/, tools/), the art and audio briefs (briefs/), the documentation, and the
+rendered film, cover and stills produced by that code.
+
+Third-party components are not relicensed here and keep their original terms:
+p5.js (LGPL-2.1), p5.brush (MIT), puppeteer-core (Apache-2.0), ffmpeg
+(LGPL/GPL, invoked externally and never bundled). See NOTICE.md and
+THIRD_PARTY_NOTICES.md.
